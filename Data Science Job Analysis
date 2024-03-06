@@ -1,1 +1,94 @@
+---------------------------Data Science Jobs Analysis-------------------------------------------
 
+
+
+--1. restore all the columns from the table
+
+select * from jobs_in_data
+
+alter table jobs_in_data alter column salary int;
+
+alter table jobs_in_data alter column salary_in_usd int;
+
+alter table jobs_in_data alter column work_year date;
+
+-- easy-level questions
+--1- Retrieve all columns for employees with the job title 'Data Analyst'.
+
+select * from jobs_in_data
+where job_title='Data Analyst'
+
+--2-List distinct job categories present in the dataset.
+
+select distinct(job_category) from jobs_in_data
+
+--3-Find the average salary (in USD) for all job categories.
+
+select job_category, avg(salary_in_usd) from jobs_in_data
+group by job_category
+
+-- Moderate-level questions
+
+-- 1-Identify the top 5 job titles with the highest average salary.
+
+select TOP 5 avg(salary) as top_sal, job_title
+from jobs_in_data
+group by job_title
+order by top_sal desc
+
+-- 2-Calculate the total number of employees for each experience level.
+
+select experience_level, count(job_title)
+from jobs_in_data 
+group by experience_level
+
+-- 3-Retrieve the job title and salary for employees with a salary greater than $100,000 USD.
+
+select job_title, salary 
+from jobs_in_data 
+where salary_in_usd> 100000 and salary_currency='USD'
+
+-- 4-Determine the average salary for each company size.
+
+select company_size, avg(salary) 
+from jobs_in_data
+group by company_size
+
+-- Hard Level Question
+
+-- 1-Find company location with highest avg salary for data scientist
+
+with CTE as (select company_location, avg(salary) as average_salary,
+dense_rank() over(order by AVG(salary) desc) as RNK from jobs_in_data
+where job_title='Data Scientist'
+group by  company_location) 
+
+-- 2- Identify the top 3 job titles with the highest total salary across all companies
+
+
+with Result as (select job_title,sum(salary) as total_salary,
+DENSE_RANK() over(order by sum(salary) desc) as rnk 
+from jobs_in_data
+group by job_title)
+select job_title, total_salary from Result where rnk<=3;
+
+-- 3- Retrieve the job title and salary for employees who work in a remote setting and have an experience level of 'Senior'.
+
+SELECT job_title, salary FROM 
+jobs_in_data 
+WHERE work_setting= 'Remote' AND experience_level='Senior'
+
+-- 4- Find the company size with the highest number of employees.
+
+SELECT TOP 1 company_size, COUNT(*) as total 
+FROM jobs_in_data
+GROUP BY company_size
+ORDER BY total DESC
+
+-- 5- Calculate the average salary for each job title in the 'Technology' job category.
+
+SELECT AVG(Salary) as avg_Sal, job_title
+FROM jobs_in_data
+WHERE job_category='Technology'
+GROUP BY job_title
+ORDER BY avg_Sal DESC
